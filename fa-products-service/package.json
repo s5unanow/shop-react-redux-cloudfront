@@ -7,13 +7,18 @@
     "watch": "tsc -w",
     "prestart": "npm run build",
     "start": "func start",
-    "test": "echo \"No tests yet...\""
+    "test": "echo \"No tests yet...\"",
+    "publish": "npm run build && func azure functionapp publish fa-products-service-ne-001-s5una --typescript"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@azure/cosmos": "^4.0.0",
+    "dotenv": "^16.4.5",
+    "uuid": "^9.0.1"
+  },
   "devDependencies": {
     "@azure/functions": "^3.0.0",
-    "azure-functions-core-tools": "^4.x",
     "@types/node": "18.x",
+    "azure-functions-core-tools": "^4.x",
     "typescript": "^4.0.0"
   }
 }
