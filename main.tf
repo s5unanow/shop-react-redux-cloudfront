@@ -190,3 +190,60 @@ resource "azurerm_cosmosdb_sql_container" "stock" {
   }
 }
 
+#task 5
+
+resource "azurerm_resource_group" "import_service_rg" {
+  location = "northeurope"
+  name     = "rg-import-service-sand-ne-001-s5una"
+}
+
+resource "azurerm_storage_account" "import_service_fa" {
+  name                     = "stgsandimportservice001"
+  location                 = "northeurope"
+  resource_group_name      = azurerm_resource_group.import_service_rg.name
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+}
+
+resource "azurerm_service_plan" "import_service_plan" {
+  name     = "asp-import-service-sand-ne-001-s5una"
+  location = "northeurope"
+  os_type  = "Windows"
+  sku_name = "Y1"
+  resource_group_name = azurerm_resource_group.import_service_rg.name
+}
+
+resource "azurerm_windows_function_app" "import_service" {
+  name                       = "fa-import-service-ne-001-s5una"
+  location                   = "northeurope"
+  service_plan_id            = azurerm_service_plan.import_service_plan.id
+  resource_group_name        = azurerm_resource_group.import_service_rg.name
+  storage_account_name       = azurerm_storage_account.import_service_fa.name
+  storage_account_access_key = azurerm_storage_account.import_service_fa.primary_access_key
+  functions_extension_version = "~4"
+  builtin_logging_enabled    = false
+
+  site_config {
+    always_on = false
+
+    application_stack {
+      node_version = "~16"
+    }
+  }
+
+  app_settings = {
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.import_service_fa.primary_connection_string
+    WEBSITE_CONTENTSHARE                     = "import-service-share"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings,
+      site_config["application_stack"],
+    ]
+  }
+}
+
+
+

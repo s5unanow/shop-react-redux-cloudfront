@@ -22,26 +22,6 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
     setFile(undefined);
   };
 
-  const uploadFile = async () => {
-    console.log("uploadFile to", url);
-
-    // Get the presigned URL
-    // const response = await axios({
-    //   method: "GET",
-    //   url,
-    //   params: {
-    //     name: encodeURIComponent(file.name),
-    //   },
-    // });
-    // console.log("File to upload: ", file.name);
-    // console.log("Uploading to: ", response.data);
-    // const result = await fetch(response.data, {
-    //   method: "PUT",
-    //   body: file,
-    // });
-    // console.log("Result: ", result);
-    // setFile("");
-  };
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
@@ -52,9 +32,54 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
       ) : (
         <div>
           <button onClick={removeFile}>Remove file</button>
-          <button onClick={uploadFile}>Upload file</button>
+          <button onClick={() => uploadFile(file, url)}>Upload file</button>
         </div>
       )}
     </Box>
   );
 }
+
+async function uploadFile(file: File, url: string): Promise<void> {
+  try {
+    console.log("uploadFile to", url);
+
+    // Get the pre-signed URL
+    const response = await fetch(
+      `${url}?name=${encodeURIComponent(file.name)}`,
+      {
+        method: "GET",
+        headers: {
+          "Ocp-Apim-Subscription-Key": "0b5b8d5535cf4c849c7eb19c6c02017f",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error getting pre-signed URL: ${response.statusText}`);
+    }
+
+    const uploadUrl = await response.text();
+
+    console.log("File to upload: ", file.name);
+    console.log("Uploading to: ", uploadUrl);
+
+    // Upload the file to the pre-signed URL
+    const result = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+        "x-ms-blob-type": "BlockBlob",
+      },
+      body: file,
+    });
+
+    console.log("Result: ", result);
+    if (result.ok) {
+      console.log("File uploaded successfully.");
+    } else {
+      console.error("File upload failed.");
+    }
+  } catch (error) {
+    console.error("Error uploading file:", error);
+  }
+};
