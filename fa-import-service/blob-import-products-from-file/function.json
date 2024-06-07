@@ -1,11 +1,12 @@
 {
   "bindings": [
     {
+      "authLevel": "function",
       "name": "myBlob",
       "type": "blobTrigger",
       "direction": "in",
-      "path": "samples-workitems/{name}",
-      "connection": ""
+      "path": "uploaded/{name}",
+      "connection": "CONNECTION_IMPORT_FILES_STORAGE_ACCOUNT"
     }
   ],
   "scriptFile": "../dist/blob-import-products-from-file/index.js"

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
+    "@azure/service-bus": "^7.9.4",
     "dotenv": "^16.4.5",
     "uuid": "^9.0.1"
   },
