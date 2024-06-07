@@ -110,8 +110,10 @@ resource "azurerm_windows_function_app" "products_service" {
   app_settings = {
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.products_service_fa.primary_connection_string
     WEBSITE_CONTENTSHARE                     = azurerm_storage_share.products_service_fa.name
-  }
-
+    SERVICEBUS_CONNECTION_STRING             = azurerm_servicebus_namespace.import_service_sb.default_primary_connection_string
+    COSMOSDB_ENDPOINT                        = azurerm_cosmosdb_account.test_app.endpoint
+    COSMOSDB_KEY                             = azurerm_cosmosdb_account.test_app.primary_key
+  }  
   # The app settings changes cause downtime on the Function App. e.g. with Azure Function App Slots
   # Therefore it is better to ignore those changes and manage app settings separately off the Terraform.
   lifecycle {
@@ -245,5 +247,38 @@ resource "azurerm_windows_function_app" "import_service" {
   }
 }
 
+# task 6
 
+# Define the Service Bus Namespace
+resource "azurerm_servicebus_namespace" "import_service_sb" {
+  name                          = "importservicebusnamespace"
+  location                      = azurerm_resource_group.import_service_rg.location
+  resource_group_name           = azurerm_resource_group.import_service_rg.name
+  sku                           = "Basic"
+  capacity                      = 0
+  public_network_access_enabled = true
+  minimum_tls_version           = "1.2"
+  zone_redundant                = false
+}
 
+# Define the Service Bus Queue
+resource "azurerm_servicebus_queue" "import_service_queue" {
+  name                                    = "import-service-queue"
+  namespace_id                            = azurerm_servicebus_namespace.import_service_sb.id
+  status                                  = "Active"
+  enable_partitioning                     = true
+  lock_duration                           = "PT1M"
+  max_message_size_in_kilobytes           = null
+  max_size_in_megabytes                   = 1024
+  max_delivery_count                      = 10
+  requires_duplicate_detection            = false
+  duplicate_detection_history_time_window = "PT10M"
+  requires_session                        = false
+  dead_lettering_on_message_expiration    = false
+}
+
+# Output the Service Bus connection string
+output "servicebus_connection_string" {
+  value     = azurerm_servicebus_namespace.import_service_sb.default_primary_connection_string
+  sensitive = true
+}

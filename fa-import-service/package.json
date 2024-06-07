@@ -11,6 +11,7 @@
     "publish": "npm run build && func azure functionapp publish fa-import-service-ne-001-s5una --typescript"
   },
   "dependencies": {
+    "@azure/service-bus": "^7.9.4",
     "@azure/storage-blob": "^12.18.0",
     "csv-parse": "^5.5.6",
     "uuid": "^9.0.1"
